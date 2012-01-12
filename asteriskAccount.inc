@@ -1,10 +1,10 @@
 <?php
 /*
-$Id: asteriskAccount.inc,v 1.27 2011/03/31 18:48:15 gruberroland Exp $
+$Id: asteriskAccount.inc,v 1.30 2012/01/11 18:50:49 gruberroland Exp $
 
   This code is part of LDAP Account Manager (http://www.sourceforge.net/projects/lam)
   Copyright (C) 2009 - 2011  Pavel Pozdnyak
-                2009 - 2011  Roland Gruber
+                2009 - 2012  Roland Gruber
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -60,12 +60,12 @@ class asteriskAccount extends baseModule implements passwordService {
 	function get_metaData() {
 		$return = array();	
 		// manages users accounts
-		$return["account_types"] = array("user");
+		$return["account_types"] = array("user", "host");
 		$return["is_base"] = false;
 		// alias name
 		$return["alias"] = _("Asterisk");
 		// module dependencies
-		$return['dependencies'] = array('depends' => array('inetOrgPerson'), 'conflicts' => array());
+		$return['dependencies'] = array('depends' => array(), 'conflicts' => array());
 		// managed object classes
 		$return['objectClasses'] = array('AsteriskSIPUser');
 		// managed attributes
@@ -253,31 +253,31 @@ class asteriskAccount extends baseModule implements passwordService {
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountCallGroup', false, _('Call groups'), null, false));
 		$configContainerOptions->addElement(new htmlOutputText(' '));
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountDTMFMode', false, _('DTFM flags'), null, false));
-		$configContainerOptions->addNewLine();
-		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountFromUser', false, _('From user'), null, false));
 		$configContainerOptions->addElement(new htmlOutputText(' '));
+		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountFromUser', false, _('From user'), null, false));
+		$configContainerOptions->addNewLine();
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountFromDomain', false, _('From domain'), null, false));
 		$configContainerOptions->addElement(new htmlOutputText(' '));
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountFullContact', false, _('Full contact'), null, false));
 		$configContainerOptions->addElement(new htmlOutputText(' '));
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountInsecure', false, _('Insecure'), null, false));
-		$configContainerOptions->addNewLine();
+		$configContainerOptions->addElement(new htmlOutputText(' '));
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountMailbox', false, _('Mailbox'), null, false));
 		$configContainerOptions->addElement(new htmlOutputText(' '));
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountNAT', false, _('NAT'), null, false));
-		$configContainerOptions->addElement(new htmlOutputText(' '));
+		$configContainerOptions->addNewLine();
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountDeny', false, _('Deny'), null, false));
 		$configContainerOptions->addElement(new htmlOutputText(' '));
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountPermit', false, _('Permit'), null, false));
-		$configContainerOptions->addNewLine();
+		$configContainerOptions->addElement(new htmlOutputText(' '));
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountPickupGroup', false, _('Pickup group'), null, false));
 		$configContainerOptions->addElement(new htmlOutputText(' '));
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountPort', false, _('Port'), null, false));
 		$configContainerOptions->addElement(new htmlOutputText(' '));
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountQualify', false, _('Qualify'), null, false));
-		$configContainerOptions->addElement(new htmlOutputText(' '));
-		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountRestrictCID', false, _('Restrict caller ID'), null, false));
 		$configContainerOptions->addNewLine();
+		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountRestrictCID', false, _('Restrict caller ID'), null, false));
+		$configContainerOptions->addElement(new htmlOutputText(' '));
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountRTPTimeout', false, _('RTP timeout'), null, false));
 		$configContainerOptions->addElement(new htmlOutputText(' '));
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountRTPHoldTimeout', false, _('RTP hold timeout'), null, false));
@@ -292,16 +292,16 @@ class asteriskAccount extends baseModule implements passwordService {
 		$configContainerOptions->addElement(new htmlOutputText(' '));
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountRegistrationContext', false, _('Registration context'), null, false));
 		$configContainerOptions->addElement(new htmlOutputText(' '));
-		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountRegistrationExten', false, _('Registration extention'), null, false));
-		$configContainerOptions->addNewLine();
-		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountCanCallForward', false, _('Can call forward'), null, false));
+		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountRegistrationExten', false, _('Registration extension'), null, false));
 		$configContainerOptions->addElement(new htmlOutputText(' '));
+		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountCanCallForward', false, _('Can call forward'), null, false));
+		$configContainerOptions->addNewLine();
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountIPAddress', false, _('IP address'), null, false));
 		$configContainerOptions->addElement(new htmlOutputText(' '));
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountDefaultUser', false, _('Default user'), null, false));
 		$configContainerOptions->addElement(new htmlOutputText(' '));
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountRegistrationServer', false, _('Registration server'), null, false));
-		$configContainerOptions->addNewLine();
+		$configContainerOptions->addElement(new htmlOutputText(' '));
 		$configContainerOptions->addElement(new htmlTableExtendedInputCheckbox('asteriskAccount_hideAstAccountLastQualifyMilliseconds', false, _('Last qualify milliseconds'), null, false));
 		$configContainerOptions->addNewLine();
 		$configContainer->addElement($configContainerOptions, true);
@@ -352,15 +352,13 @@ class asteriskAccount extends baseModule implements passwordService {
 			'AstAccountMusicOnHold' => _('Music on hold'),
 			'AstAccountExpirationTimestamp' => _('Expiration timestamp'),
 			'AstAccountRegistrationContext' => _('Registration context'),
-			'AstAccountRegistrationExten' => _('Registration extention'),
+			'AstAccountRegistrationExten' => _('Registration extension'),
 			'AstAccountCanCallForward' => _('Can call forward'),
 			'AstAccountIPAddress' => _('IP address'),
 			'AstAccountDefaultUser' => _('Default user'),
 			'AstAccountRegistrationServer' => _('Registration server'),
 			'AstAccountLastQualifyMilliseconds' => _('Last qualify milliseconds'),
 		);
-		// upload dependencies
-		$return['upload_preDepends'] = array('posixAccount', 'inetOrgPerson');
 		// upload fields
 		$return['upload_columns'] = array(
 			array(
@@ -569,7 +567,7 @@ class asteriskAccount extends baseModule implements passwordService {
 		if (!$this->isBooleanConfigOptionSet('asteriskAccount_hideAstAccountRegistrationExten')) {
 			$return['upload_columns'][] = array(
 				'name' => 'asteriskAccount_AstAccountRegistrationExten',
-				'description' => _('Registration extention'),
+				'description' => _('Registration extension'),
 				'help' => 'AstAccountRegistrationExten',
 			);
 		}
@@ -825,6 +823,7 @@ class asteriskAccount extends baseModule implements passwordService {
 					$AstAccountPort = $this->attributes['AstAccountPort'][0];
 				}
 				$AstAccountPortInput = new htmlTableExtendedInputField(_("Port"), 'AstAccountPort', $AstAccountPort, 'AstAccountPort');
+				$AstAccountPortInput->setValidationRule(htmlElement::VALIDATE_NUMERIC);
 				$return->addElement($AstAccountPortInput, true);
 			}
 			// qualify
@@ -852,6 +851,7 @@ class asteriskAccount extends baseModule implements passwordService {
 					$AstAccountRTPTimeout = $this->attributes['AstAccountRTPTimeout'][0];
 				}
 				$AstAccountRTPTimeoutInput = new htmlTableExtendedInputField(_("RTP timeout"), 'AstAccountRTPTimeout', $AstAccountRTPTimeout, 'AstAccountRTPTimeout');
+				$AstAccountRTPTimeoutInput->setValidationRule(htmlElement::VALIDATE_NUMERIC);
 				$return->addElement($AstAccountRTPTimeoutInput, true);
 			}
 			// RTP hold timeout
@@ -861,6 +861,7 @@ class asteriskAccount extends baseModule implements passwordService {
 					$AstAccountRTPHoldTimeout = $this->attributes['AstAccountRTPHoldTimeout'][0];
 				}
 				$AstAccountRTPHoldTimeoutInput = new htmlTableExtendedInputField(_("RTP hold timeout"), 'AstAccountRTPHoldTimeout', $AstAccountRTPHoldTimeout, 'AstAccountRTPHoldTimeout');
+				$AstAccountRTPHoldTimeoutInput->setValidationRule(htmlElement::VALIDATE_NUMERIC);
 				$return->addElement($AstAccountRTPHoldTimeoutInput, true);
 			}
 			// disallowed codec
@@ -914,7 +915,7 @@ class asteriskAccount extends baseModule implements passwordService {
 				if (isset($this->attributes['AstAccountRegistrationExten'][0])) {
 					$AstAccountRegistrationExten = $this->attributes['AstAccountRegistrationExten'][0];
 				}
-				$AstAccountRegistrationExtenInput = new htmlTableExtendedInputField(_("Registration extention"), 'AstAccountRegistrationExten', $AstAccountRegistrationExten, 'AstAccountRegistrationExten');
+				$AstAccountRegistrationExtenInput = new htmlTableExtendedInputField(_("Registration extension"), 'AstAccountRegistrationExten', $AstAccountRegistrationExten, 'AstAccountRegistrationExten');
 				$return->addElement($AstAccountRegistrationExtenInput, true);
 			}
 			// can call forward

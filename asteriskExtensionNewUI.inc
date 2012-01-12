@@ -1,11 +1,11 @@
 <?php
 
 /*
-  $Id: asteriskExtensionNewUI.inc,v 1.2 2011/11/27 15:14:09 gruberroland Exp $
+  $Id: asteriskExtensionNewUI.inc,v 1.3 2011/12/23 09:03:44 gruberroland Exp $
 
   This code is part of LDAP Account Manager (http://www.sourceforge.net/projects/lam)
   Copyright (C) 2009 - 2011  Pavel Pozdnyak
-  2009 - 2011  Roland Gruber
+                2009 - 2011  Roland Gruber
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
