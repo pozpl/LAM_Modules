@@ -183,15 +183,9 @@ class asteriskExtensionNewUI extends baseModule {
         $this->render_extensions_by_priority($extName, $return);
 
         // owners
-        if (!$this->isBooleanConfigOptionSet('asteriskExtension_UseCreatorAsOwner') || $this->getAccountContainer()->isNewAccount) {
+        if ( !$this->isBooleanConfigOptionSet('asteriskExtension_UseCreatorAsOwner')  || $this->getAccountContainer()->isNewAccount) {
             $this->render_exten_owners_set_controls($return);
-        }  elseif( $this->getAccountContainer()->isNewAccount) {
-            //handle situation where we mast add current loged user as extension owner
-            if ( $this->isBooleanConfigOptionSet('asteriskExtension_UseCreatorAsOwner') ){
-                $this->setDefaultExtensionOwner();
-            }
-            $this->render_exten_owners_set_controls($return);
-        }
+        }  
 
         return $return;
     }
@@ -482,7 +476,18 @@ class asteriskExtensionNewUI extends baseModule {
             }
         }
     }
-
+    
+    /**
+     * Return true if even one owner is set and false otherwise
+     */
+    function isExtensionOwnerSet(){
+        $is_set = false;
+        if(sizeof($this->extensionOwners) > 0){
+            $is_set = true;
+        }
+        return $is_set;
+    }
+    
     /**
      * Write variables into object and do some regex checks
      *
@@ -491,7 +496,7 @@ class asteriskExtensionNewUI extends baseModule {
     function process_attributes() {
         $errors = array();
         $extensionName = array();
-
+        
         if (!isset($_POST['generate_extension_name'])) {
 
             //perform normal set of operations
@@ -534,6 +539,11 @@ class asteriskExtensionNewUI extends baseModule {
     }
 
     function processExtensionRows($extensionName, $extensionContext) {
+        //Set default owner as logged in user if flag is set and no other owner is set
+        if ( $this->isBooleanConfigOptionSet('asteriskExtension_UseCreatorAsOwner') && ! $this->isExtensionOwnerSet()){
+                $this->setDefaultExtensionOwner();
+        }
+        
         $errors = array();
         if (isset($_POST['extension_rows']) && get_preg($_POST['extension_rows'], 'digit')) {
             
