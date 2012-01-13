@@ -1,9 +1,9 @@
 <?php
 /*
-$Id: asteriskAccount.inc,v 1.30 2012/01/11 18:50:49 gruberroland Exp $
+$Id: asteriskAccount.inc,v 1.31 2012/01/12 19:22:00 gruberroland Exp $
 
   This code is part of LDAP Account Manager (http://www.sourceforge.net/projects/lam)
-  Copyright (C) 2009 - 2011  Pavel Pozdnyak
+  Copyright (C) 2009 - 2012  Pavel Pozdnyak
                 2009 - 2012  Roland Gruber
 
   This program is free software; you can redistribute it and/or modify

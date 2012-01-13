@@ -183,7 +183,13 @@ class asteriskExtensionNewUI extends baseModule {
         $this->render_extensions_by_priority($extName, $return);
 
         // owners
-        if (!$this->isBooleanConfigOptionSet('asteriskExtension_UseCreatorAsOwner')) {
+        if (!$this->isBooleanConfigOptionSet('asteriskExtension_UseCreatorAsOwner') || $this->getAccountContainer()->isNewAccount) {
+            $this->render_exten_owners_set_controls($return);
+        }  elseif( $this->getAccountContainer()->isNewAccount) {
+            //handle situation where we mast add current loged user as extension owner
+            if ( $this->isBooleanConfigOptionSet('asteriskExtension_UseCreatorAsOwner') ){
+                $this->setDefaultExtensionOwner();
+            }
             $this->render_exten_owners_set_controls($return);
         }
 
@@ -530,11 +536,6 @@ class asteriskExtensionNewUI extends baseModule {
     function processExtensionRows($extensionName, $extensionContext) {
         $errors = array();
         if (isset($_POST['extension_rows']) && get_preg($_POST['extension_rows'], 'digit')) {
-            
-            //handle situation where we mast add current loged user as extension owner
-            if ($this->isBooleanConfigOptionSet('asteriskExtension_UseCreatorAsOwner')){
-                $this->setDefaultExtensionOwner();
-            }
             
             $extensionPriorityCntr = 1;
             $this->extensionRows = array();
