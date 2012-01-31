@@ -1,7 +1,7 @@
 <?php
 
 /*
-  $Id: asteriskExtensionNewUI.inc,v 1.5 2012/01/21 18:40:34 gruberroland Exp $
+  $Id: asteriskExtensionNewUI.inc,v 1.6 2012/01/30 18:43:54 gruberroland Exp $
 
   This code is part of LDAP Account Manager (http://www.sourceforge.net/projects/lam)
   Copyright (C) 2009 - 2012  Pavel Pozdnyak
