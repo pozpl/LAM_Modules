@@ -139,6 +139,44 @@ class asteriskExtensionNewUI extends baseModule {
             'cn' => _('Common name'),
             'rules' => _('Rules'),
         );
+        
+        $return['upload_columns'] = array(
+			array(
+				'name' => 'asteriskExtensionNewUI_AstExtension',
+				'description' => _('Extension name'),
+				'help' => 'AstExtension',
+				'example' => '500',
+				'required' => true
+			),			
+			array(
+				'name' => 'asteriskExtensionNewUI_AstContext',
+				'description' => _('Account context'),
+				'help' => 'AstContext',
+				'example' => _('test'),
+				'required' => true
+			),
+                        array(
+				'name' => 'asteriskExtensionNewUI_member',
+				'description' => _('Extension owners'),
+				'help' => 'member',
+				'example' => 'uid=user1,o=test;uid=user2,o=test',
+				'required' => true
+			),
+                        array(
+				'name' => 'asteriskExtensionNewUI_AstApplication',
+				'description' => _('Application'),
+				'help' => 'AstApplication',
+				'example' => 'Playback',
+				'required' => true
+			),
+			array(
+				'name' => 'asteriskExtensionNewUI_AstApplicationData',
+				'description' => _('Application data'),
+				'help' => 'AstApplicationData',
+				'example' => _('test-start'),
+			),		
+			
+		);
         return $return;
     }
 
@@ -148,6 +186,7 @@ class asteriskExtensionNewUI extends baseModule {
     function load_Messages() {
         $this->messages['cn'][0] = array('ERROR', _('Please enter a common name.'));
         $this->messages['AstApplication'][0] = array('ERROR', _('Please enter the application.'));
+        $this->messages['AstApplication'][1] = array('ERROR', _('Number of applications and application data in bulk upload is not the same.'));
         $this->messages['AstApplicationData'][0] = array('ERROR', _('Please enter the application data.'));
         $this->messages['AstContext'][0] = array('ERROR', _('Please enter the extension context.'));
         $this->messages['AstExtension'][0] = array('ERROR', _('Please enter the extension name.'));
@@ -155,6 +194,7 @@ class asteriskExtensionNewUI extends baseModule {
         $this->messages['AstPriority'][0] = array('ERROR', _('Please enter the priority.'));
         $this->messages['AstExtensionAstPriority'][0] = array('ERROR', _('This pair of extension name and priority already exists.'));
         $this->messages['member'][0] = array('ERROR', _('Please add at least one extension owner.'));
+        
     }
 
     /**
@@ -761,30 +801,73 @@ class asteriskExtensionNewUI extends baseModule {
      */
     function build_uploadAccounts($rawAccounts, $ids, &$partialAccounts, $selectedModules) {
         $messages = array();
-        for ($i = 0; $i < sizeof($rawAccounts); $i++) {
-            // add object class
-            if (!in_array("AsteriskExtension", $partialAccounts[$i]['objectClass']))
-                $partialAccounts[$i]['objectClass'][] = "AsteriskExtension";
-            if (!in_array("groupOfNames", $partialAccounts[$i]['objectClass']))
-                $partialAccounts[$i]['objectClass'][] = "groupOfNames";
-            // attributes
-            $partialAccounts[$i]['cn'] = $rawAccounts[$i][$ids['asteriskExtension_cn']];
-            $partialAccounts[$i]['AstExtension'] = $rawAccounts[$i][$ids['asteriskExtension_AstExtension']];
-            $partialAccounts[$i]['AstPriority'] = $rawAccounts[$i][$ids['asteriskExtension_AstPriority']];
-            $partialAccounts[$i]['member'] = explode(';', $rawAccounts[$i][$ids['asteriskExtension_member']]);
-            if ($rawAccounts[$i][$ids['asteriskExtension_AstApplication']] != "") {
-                $partialAccounts[$i]['AstApplication'] = $rawAccounts[$i][$ids['asteriskExtension_AstApplication']];
-            }
-            if ($rawAccounts[$i][$ids['asteriskExtension_AstApplicationData']] != "") {
-                $partialAccounts[$i]['AstApplicationData'] = $rawAccounts[$i][$ids['asteriskExtension_AstApplicationData']];
-            }
-            if ($rawAccounts[$i][$ids['asteriskExtension_AstContext']] != "") {
-                $partialAccounts[$i]['AstContext'] = $rawAccounts[$i][$ids['asteriskExtension_AstContext']];
-            }
+        
+        for($rawAccIdx = 0; $rawAccIdx < sizeof($rawAccounts); $rawAccIdx++){
+            $errors = $this->constructExtensionsFromRawDescription($rawAccounts[$rawAccIdx], $ids, $partialAccounts);
+            array_merge($messages, $errors);
         }
         return $messages;
     }
+    
+    /**
+     * Construct array of hashes that depicts single accounts.
+     * as given parameter we have a string of such type
+     * asteriskExtension_AstExtension asteriskExtension_member \
+     * asteriskExtension_AstApplication  asteriskExtension_AstApplicationData
+     * extension_01 default ou=lalal,o=lo,dc=com Dial;Hangup SIP/pozpl;
+     * From this string we must produce two LDAP objects. For each rule respectively. 
+     * @param type $rawAccount 
+     * @param array $ids list of IDs for column position (e.g. "posixAccount_uid" => 5)
+     * @param array $extensionsList reference to list of hash arrays (name => value) which are later added to LDAP
+     * 
+     */
+    function constructExtensionsFromRawDescription($rawAccount, $ids, &$extensionsList){
+        //get list of applications
+        $applications = explode(';', $rawAccount[$ids['asteriskExtensionNewUI_AstApplication']]);
+        //get list of applications data
+        $applicationsData = explode(';', $rawAccount[$ids['asteriskExtensionNewUI_AstApplicationData']]);
+        
+        $errors = array();        
+        if (sizeof($applications) == sizeof($applicationsData)) {
+            for ($aplIter = 0; $aplIter < sizeof($applications); $aplIter++) {
+                $idexToInsert = sizeof($extensionsList);
+                if(!isset ($extensionsList[$idexToInsert])){
+                    $extensionsList[$idexToInsert] = array();
+                }
+                if(!isset ($extensionsList[$idexToInsert]['objectClass'])){
+                    $extensionsList[$idexToInsert]['objectClass'] = array();
+                }
+                // add object class
+                if (!in_array("AsteriskExtension", $extensionsList[$idexToInsert]['objectClass']))
+                    $extensionsList[$idexToInsert]['objectClass'][] = "AsteriskExtension";
+                if (!in_array("groupOfNames", $extensionsList[$idexToInsert]['objectClass']))
+                    $extensionsList[$idexToInsert]['objectClass'][] = "groupOfNames";
 
+                // attributes
+                $priority = $aplIter + 1;
+                $extension = $rawAccount[$ids['asteriskExtensionNewUI_AstExtension']];
+
+                $extensionsList[$idexToInsert]['cn'] = $extension . '-' . $priority;
+                $extensionsList[$idexToInsert]['AstExtension'] = $extension;
+                $extensionsList[$idexToInsert]['AstPriority'] = $priority;
+                $extensionsList[$idexToInsert]['member'] = explode(';', $rawAccount[$ids['asteriskExtensionNewUI_member']]);
+
+                if ($rawAccount[$ids['asteriskExtensionNewUI_AstApplication']] != "") {
+                    $extensionsList[$idexToInsert]['AstApplication'] = $rawAccount[$ids['asteriskExtensionNewUI_AstApplication']];
+                }
+                if ($rawAccount[$ids['asteriskExtensionNewUI_AstApplicationData']] != "") {
+                    $extensionsList[$idexToInsert]['AstApplicationData'] = $rawAccount[$ids['asteriskExtensionNewUI_AstApplicationData']];
+                }
+                if ($rawAccount[$ids['asteriskExtensionNewUI_AstContext']] != "") {
+                    $extensionsList[$idexToInsert]['AstContext'] = $rawAccount[$ids['asteriskExtensionNewUI_AstContext']];
+                }
+            }
+        } else {
+            $errors[] = $this->messages['AstApplication'][1];
+        }
+        return $errors;
+    }
+    
     //public
 
     function save_attributes() {
