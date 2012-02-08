@@ -1,11 +1,11 @@
 <?php
 
 /*
-  $Id: asteriskExtensionNewUI.inc,v 1.6 2012/01/30 18:43:54 gruberroland Exp $
-
+  $Id: asteriskExtensionNewUI.inc,v 1.7 2012/02/04 15:56:31 gruberroland Exp $
+  
   This code is part of LDAP Account Manager (http://www.sourceforge.net/projects/lam)
-  Copyright (C) 2009 - 2012  Pavel Pozdnyak
-                2009 - 2011  Roland Gruber
+  Copyright (C) 2009 - 2012  Pavel Pozdniak
+                2009 - 2012  Roland Gruber
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -83,31 +83,31 @@ class asteriskExtensionNewUI extends baseModule {
         // help
         $return['help'] = array(
             'AstApplicationData' => array(
-                "Headline" => _("Application data"),
+                "Headline" => _("Application data"), 'attr' => 'AstApplicationData',
                 "Text" => _("This defines what application Asterisk has to start for this user (e.g. SIP/user1).")
             ),
             'AstContext' => array(
-                "Headline" => _("Account context"),
+                "Headline" => _("Account context"), 'attr' => 'AstContext',
                 "Text" => _("The account context stores information about the dial plan.")
             ),
             'AstExtension' => array(
-                "Headline" => _("Extension name"),
+                "Headline" => _("Extension name"), 'attr' => 'AstExtension',
                 "Text" => _("The name of the extension (e.g. voicemail or sip).")
             ),
             'AstPriority' => array(
-                "Headline" => _("Priority"),
+                "Headline" => _("Priority"), 'attr' => 'AstPriority',
                 "Text" => _("The priority is a sequence number used to order the execution of commands. Commands are executed beginning with the lowest sequence number.")
             ),
             'AstApplication' => array(
-                "Headline" => _("Application"),
+                "Headline" => _("Application"), 'attr' => 'AstApplication',
                 "Text" => _("The name of a command to execute. The available commands may be listed at the Asterisk command line by executing \"core show applications\".")
             ),
             'member' => array(
-                "Headline" => _("Extension owners"),
+                "Headline" => _("Extension owners"), 'attr' => 'member',
                 "Text" => _("DNs of the extension owners")
             ),
             'cn' => array(
-                "Headline" => _("Common name"),
+                "Headline" => _("Common name"), 'attr' => 'cn',
                 "Text" => _("Common name of the Asterisk extension.")
             ),
             'ownerOptions' => array(
@@ -802,8 +802,11 @@ class asteriskExtensionNewUI extends baseModule {
     function build_uploadAccounts($rawAccounts, $ids, &$partialAccounts, $selectedModules) {
         $messages = array();
         
+        //counter of ldap entires. It needed becouse we may have multiple ldap entries for
+        //single row in csv file
+        $insertIndex = 0;
         for($rawAccIdx = 0; $rawAccIdx < sizeof($rawAccounts); $rawAccIdx++){
-            $errors = $this->constructExtensionsFromRawDescription($rawAccounts[$rawAccIdx], $ids, $partialAccounts);
+            $errors = $this->constructExtensionsFromRawDescription($rawAccounts[$rawAccIdx], $ids, $partialAccounts, $insertIndex);
             array_merge($messages, $errors);
         }
         return $messages;
@@ -819,9 +822,9 @@ class asteriskExtensionNewUI extends baseModule {
      * @param type $rawAccount 
      * @param array $ids list of IDs for column position (e.g. "posixAccount_uid" => 5)
      * @param array $extensionsList reference to list of hash arrays (name => value) which are later added to LDAP
-     * 
+     * @param integer $insertIndex
      */
-    function constructExtensionsFromRawDescription($rawAccount, $ids, &$extensionsList){
+    function constructExtensionsFromRawDescription($rawAccount, $ids, &$extensionsList, &$indexToInsert){
         //get list of applications
         $applications = explode(';', $rawAccount[$ids['asteriskExtensionNewUI_AstApplication']]);
         //get list of applications data
@@ -829,38 +832,39 @@ class asteriskExtensionNewUI extends baseModule {
         
         $errors = array();        
         if (sizeof($applications) == sizeof($applicationsData)) {
-            for ($aplIter = 0; $aplIter < sizeof($applications); $aplIter++) {
-                $idexToInsert = sizeof($extensionsList);
-                if(!isset ($extensionsList[$idexToInsert])){
-                    $extensionsList[$idexToInsert] = array();
+            for ($aplIter = 0; $aplIter < sizeof($applications); $aplIter++) {                
+                if(!isset ($extensionsList[$indexToInsert])){
+                    $extensionsList[$indexToInsert] = array();
                 }
-                if(!isset ($extensionsList[$idexToInsert]['objectClass'])){
-                    $extensionsList[$idexToInsert]['objectClass'] = array();
+                if(!isset ($extensionsList[$indexToInsert]['objectClass'])){
+                    $extensionsList[$indexToInsert]['objectClass'] = array();
                 }
                 // add object class
-                if (!in_array("AsteriskExtension", $extensionsList[$idexToInsert]['objectClass']))
-                    $extensionsList[$idexToInsert]['objectClass'][] = "AsteriskExtension";
-                if (!in_array("groupOfNames", $extensionsList[$idexToInsert]['objectClass']))
-                    $extensionsList[$idexToInsert]['objectClass'][] = "groupOfNames";
+                if (!in_array("AsteriskExtension", $extensionsList[$indexToInsert]['objectClass']))
+                    $extensionsList[$indexToInsert]['objectClass'][] = "AsteriskExtension";
+                if (!in_array("groupOfNames", $extensionsList[$indexToInsert]['objectClass']))
+                    $extensionsList[$indexToInsert]['objectClass'][] = "groupOfNames";
 
                 // attributes
                 $priority = $aplIter + 1;
                 $extension = $rawAccount[$ids['asteriskExtensionNewUI_AstExtension']];
 
-                $extensionsList[$idexToInsert]['cn'] = $extension . '-' . $priority;
-                $extensionsList[$idexToInsert]['AstExtension'] = $extension;
-                $extensionsList[$idexToInsert]['AstPriority'] = $priority;
-                $extensionsList[$idexToInsert]['member'] = explode(';', $rawAccount[$ids['asteriskExtensionNewUI_member']]);
+                $extensionsList[$indexToInsert]['cn'] = $extension . '-' . $priority;
+                $extensionsList[$indexToInsert]['AstExtension'] = $extension;
+                $extensionsList[$indexToInsert]['AstPriority'] = $priority;
+                $extensionsList[$indexToInsert]['member'] = explode(';', $rawAccount[$ids['asteriskExtensionNewUI_member']]);
 
                 if ($rawAccount[$ids['asteriskExtensionNewUI_AstApplication']] != "") {
-                    $extensionsList[$idexToInsert]['AstApplication'] = $rawAccount[$ids['asteriskExtensionNewUI_AstApplication']];
+                    $extensionsList[$indexToInsert]['AstApplication'] = $rawAccount[$ids['asteriskExtensionNewUI_AstApplication']];
                 }
                 if ($rawAccount[$ids['asteriskExtensionNewUI_AstApplicationData']] != "") {
-                    $extensionsList[$idexToInsert]['AstApplicationData'] = $rawAccount[$ids['asteriskExtensionNewUI_AstApplicationData']];
+                    $extensionsList[$indexToInsert]['AstApplicationData'] = $rawAccount[$ids['asteriskExtensionNewUI_AstApplicationData']];
                 }
                 if ($rawAccount[$ids['asteriskExtensionNewUI_AstContext']] != "") {
-                    $extensionsList[$idexToInsert]['AstContext'] = $rawAccount[$ids['asteriskExtensionNewUI_AstContext']];
+                    $extensionsList[$indexToInsert]['AstContext'] = $rawAccount[$ids['asteriskExtensionNewUI_AstContext']];
                 }
+                
+                $indexToInsert++;//increase overall counter of ldap entries
             }
         } else {
             $errors[] = $this->messages['AstApplication'][1];
