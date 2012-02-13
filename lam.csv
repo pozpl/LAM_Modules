@@ -1,0 +1,3 @@
+"dn_suffix","dn_rdn","asteriskExtensionNewUI_AstExtension","asteriskExtensionNewUI_AstContext","asteriskExtensionNewUI_member","asteriskExtensionNewUI_AstApplication","asteriskExtensionNewUI_AstApplicationData"
+"ou=extensions,ou=iacp,dc=dvo,dc=ru","cn","ext_bulk","test","uid=pozpl,ou=users,ou=iacp,dc=dvo,dc=ru","Playback,"test-start;"
+"ou=extensions,ou=iacp,dc=dvo,dc=ru","cn","ext_bulk","test","uid=pozpl,ou=users,ou=iacp,dc=dvo,dc=ru", "Hangup",

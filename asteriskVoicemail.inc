@@ -1,6 +1,6 @@
 <?php
 /*
-$Id: asteriskVoicemail.inc,v 1.16 2012/01/15 19:34:14 gruberroland Exp $
+$Id: asteriskVoicemail.inc,v 1.18 2012/02/08 17:55:00 gruberroland Exp $
 
   This code is part of LDAP Account Manager (http://www.sourceforge.net/projects/lam)
   Copyright (C) 2010         Pavel Pozdnyak
@@ -79,35 +79,35 @@ class asteriskVoicemail extends baseModule implements passwordService {
 		// help
 		$return['help'] = array(
 			'AstContext' => array(
-				"Headline" => _("Account context"),
+				"Headline" => _("Account context"), 'attr' => 'AstContext',
 				"Text" => _("The account context stores information about the dial plan.")
 			),
 			'AstVoicemailMailbox' => array(
-				"Headline" => _("Mailbox"),
+				"Headline" => _("Mailbox"), 'attr' => 'AstVoicemailMailbox',
 				"Text" => _("Voicemail mailbox for this account.")
 			),
 			'AstVoicemailPassword' => array(
-				"Headline" => _("Password"),
+				"Headline" => _("Password"), 'attr' => 'AstVoicemailPassword',
 				"Text" => _("Password for voicemail mailbox.")
 			),
 			'AstVoicemailFullname' => array(
-				"Headline" => _("Full name"),
+				"Headline" => _("Full name"), 'attr' => 'AstVoicemailFullname',
 				"Text" => _("Full name for Asterisk voicemail mailbox.")
 			),
 			'AstVoicemailEmail' => array(
-				"Headline" => _("Email address"),
+				"Headline" => _("Email address"), 'attr' => 'AstVoicemailEmail',
 				"Text" => _("Email address for this voicemail account.")
 			),
 			'AstVoicemailPager' => array(
-				"Headline" => _("Pager"),
+				"Headline" => _("Pager"), 'attr' => 'AstVoicemailPager',
 				"Text" => _("Pager number for Asterisk voicemail.")
 			),
 			'AstVoicemailOptions' => array(
-				"Headline" => _("Options"),
+				"Headline" => _("Options"), 'attr' => 'AstVoicemailOptions',
 				"Text" => _("Options for Asterisk voicemail account (e.g. sendvoicemail=yes).")
 			),
 			'AstVoicemailContext' => array(
-				"Headline" => _("Voicemail context"),
+				"Headline" => _("Voicemail context"), 'attr' => 'AstVoicemailContext',
 				"Text" => _("Asterisk voicemail context.")
 			),
 		);
@@ -587,11 +587,12 @@ class asteriskVoicemail extends baseModule implements passwordService {
 	 *
 	 * @param string $fields input fields
 	 * @param array $attributes LDAP attributes
+	 * @param boolean $passwordChangeOnly indicates that the user is only allowed to change his password and no LDAP content is readable
 	 * @return array messages and attributes (array('messages' => array(), 'add' => array('mail' => array('test@test.com')), 'del' => array(), 'mod' => array(), 'info' => array()))
 	 */
-	function checkSelfServiceOptions($fields, $attributes) {
+	function checkSelfServiceOptions($fields, $attributes, $passwordChangeOnly) {
 		$return = array('messages' => array(), 'add' => array(), 'del' => array(), 'mod' => array(), 'info' => array());
-		if (!in_array_ignore_case('AsteriskVoiceMail', $attributes['objectClass'])) {
+		if (!isset($attributes['objectClass']) || !in_array_ignore_case('AsteriskVoiceMail', $attributes['objectClass'])) {
 			return $return;
 		}
 		if (isset($_POST['posixAccount_password']) && ($_POST['posixAccount_password'] != '')) {

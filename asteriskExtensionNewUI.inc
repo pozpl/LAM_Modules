@@ -1,7 +1,7 @@
 <?php
 
 /*
-  $Id: asteriskExtensionNewUI.inc,v 1.7 2012/02/04 15:56:31 gruberroland Exp $
+  $Id: asteriskExtensionNewUI.inc,v 1.8 2012/02/09 18:05:27 gruberroland Exp $
   
   This code is part of LDAP Account Manager (http://www.sourceforge.net/projects/lam)
   Copyright (C) 2009 - 2012  Pavel Pozdniak
@@ -801,13 +801,38 @@ class asteriskExtensionNewUI extends baseModule {
      */
     function build_uploadAccounts($rawAccounts, $ids, &$partialAccounts, $selectedModules) {
         $messages = array();
-        
-        //counter of ldap entires. It needed becouse we may have multiple ldap entries for
-        //single row in csv file
-        $insertIndex = 0;
-        for($rawAccIdx = 0; $rawAccIdx < sizeof($rawAccounts); $rawAccIdx++){
-            $errors = $this->constructExtensionsFromRawDescription($rawAccounts[$rawAccIdx], $ids, $partialAccounts, $insertIndex);
-            array_merge($messages, $errors);
+        //hash to strore extension_name => priority. For new extensoin priority will be 1
+        $extensionNamePriorityMap = array();
+        for ($rawAccIdx = 0; $rawAccIdx < sizeof($rawAccounts); $rawAccIdx++) {            
+            // add object class
+            if (!in_array("AsteriskExtension", $partialAccounts[$i]['objectClass']))
+                $partialAccounts[$i]['objectClass'][] = "AsteriskExtension";
+            if (!in_array("groupOfNames", $partialAccounts[$i]['objectClass']))
+                $partialAccounts[$i]['objectClass'][] = "groupOfNames";
+            // attributes
+            $partialAccounts[$i]['cn'] = $rawAccounts[$i][$ids['asteriskExtension_cn']];
+            $partialAccounts[$i]['AstExtension'] = $rawAccounts[$i][$ids['asteriskExtension_AstExtension']];
+            
+            $extensionName = $partialAccounts[$i]['AstExtension'];
+            $astPriorityTmp = 0;
+            if(isset ($extensionNamePriorityMap[$extensionName])){
+                $astPriorityTmp = $partialAccounts[$i]['AstExtension'] + 1;
+            }else{
+                $astPriorityTmp = 1;
+                $partialAccounts[$i]['AstExtension'] = $astPriorityTmp;
+            }            
+            $partialAccounts[$i]['AstPriority'] = $astPriorityTmp;
+            
+            $partialAccounts[$i]['member'] = explode(';', $rawAccounts[$i][$ids['asteriskExtension_member']]);
+            if ($rawAccounts[$i][$ids['asteriskExtension_AstApplication']] != "") {
+                $partialAccounts[$i]['AstApplication'] = $rawAccounts[$i][$ids['asteriskExtension_AstApplication']];
+            }
+            if ($rawAccounts[$i][$ids['asteriskExtension_AstApplicationData']] != "") {
+                $partialAccounts[$i]['AstApplicationData'] = $rawAccounts[$i][$ids['asteriskExtension_AstApplicationData']];
+            }
+            if ($rawAccounts[$i][$ids['asteriskExtension_AstContext']] != "") {
+                $partialAccounts[$i]['AstContext'] = $rawAccounts[$i][$ids['asteriskExtension_AstContext']];
+            }
         }
         return $messages;
     }
