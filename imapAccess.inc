@@ -1,6 +1,6 @@
 <?php
 /*
-$Id: imapAccess.inc,v 1.8 2011/04/03 10:54:54 gruberroland Exp $
+$Id: imapAccess.inc,v 1.12 2012/02/05 19:17:58 gruberroland Exp $
 
   This code is part of LDAP Account Manager (http://www.ldap-account-manager.org/)
   Copyright (C) 2010 - 2011  Pavel Pozdniak
@@ -87,11 +87,11 @@ class imapAccess extends baseModule {
 				"Headline" => _("Prefix for mailboxes"),
 				"Text" => _("Some IMAP servers store mailboxes with a prefix (e.g. \"user\" for Cyrus which results in \"user.username\").")),
 			'ImapMailDomain' => array(
-				"Headline" => _("Mail domain(s)"),
+				"Headline" => _("Mail domains"),
 				"Text" => _("Please enter a comma separated list of domain names (e.g. \"company.com,example.com\"). LAM will only manage mailboxes from these domains.")),
 			'ImapUserNameAttr' => array(
 				"Headline" => _("User name attribute"),
-				"Text" => _("Please choose the attribute to get the IMAP user name. The default is mail but you can also use uid.")),
+				"Text" => _("Please choose the attribute to get the IMAP user name. The default is \"mail\" but you can also use \"uid\".")),
 			'MailAddress' => array(
 				"Headline" => _("Mailbox"),
 				"Text" => _("This mailbox will be created/deleted.")),
@@ -115,7 +115,7 @@ class imapAccess extends baseModule {
 		$configPasswordType->setHasDescriptiveElements(true);
 		$configContainer->addElement($configPasswordType, true);
 		$configContainer->addElement(new htmlTableExtendedInputField(_('Prefix for mailboxes'), 'ImapAccess_ImapUserPrefix', '', 'ImapUserPrefix'), true);
-		$mailDomainsInput = new htmlTableExtendedInputField(_('Mail domain(s)'), 'ImapAccess_ImapDomain', '', 'ImapMailDomain');
+		$mailDomainsInput = new htmlTableExtendedInputField(_('Mail domains'), 'ImapAccess_ImapDomain', '', 'ImapMailDomain');
 		$mailDomainsInput->setRequired(true);
 		$configContainer->addElement($mailDomainsInput, true);
 		$configUserName = new htmlTableExtendedSelect('ImapAccess_UserNameAttribute', array('mail', 'uid'), array('mail'), _("User name attribute"), 'ImapUserNameAttr');
@@ -155,7 +155,7 @@ class imapAccess extends baseModule {
 		$this->messages['managemailbox'][1] = array('ERROR', _('Unable to delete mailbox from IMAP server.'));
 		$this->messages['managemailbox'][2] = array('ERROR', _('Unable to create mailbox on IMAP server.'));
 		$this->messages['managemailbox'][3] = array('ERROR', _('Unable to locate mailbox on IMAP.'));
-		$this->messages['managemailbox'][4] = array('ERROR', _('Your IMAP domain(s) and email address domain do not match.'));
+		$this->messages['managemailbox'][4] = array('ERROR', _('Your IMAP domains and email address domain do not match.'));
 		$this->messages['managemailbox'][5] = array('ERROR', _('Invalid password for IMAP admin or other problem occured.'));
 		$this->messages['managemailbox'][6] = array('WARN', _('Your LAM login password was not accepted by the IMAP server.'));
 		$this->messages['managemailbox'][7] = array('ERROR', _('Cannot update quota.'));
@@ -169,6 +169,9 @@ class imapAccess extends baseModule {
 	 */
 	function display_html_attributes() {
 		$return = new htmlTable();
+		if (!checkIfWriteAccessIsAllowed()) {
+			return $return;
+		}
 		$prefix = $this->getMailboxPrefix();
 		
 		$email = '';
@@ -312,17 +315,21 @@ class imapAccess extends baseModule {
 	 */
 	function process_attributes() {
 		$errors = array();
+		if (!checkIfWriteAccessIsAllowed()) {
+			return $errors;
+		}
 		$prefix = $this->getMailboxPrefix();
 		
 		$imap_server_address = $this->getServerAddress();
 		$imap_admin_user = $this->moduleSettings['ImapAccess_ImapAdmin'][0];
 		
-		if (isset($_POST['ImapAdminPassword'])) {
+		if (isset($_POST['ImapAdminPassword']) && isset($_POST['enterPasswordButton'])) {
 			$errors = $this->doLogin();
 		}
 		
 		$imap_admin_password = $this->getAdminPassword();
-		if ($imap_admin_password) {
+		$mbox = 0;//default state is false
+                if ($imap_admin_password) {
 			$mbox = @imap_open("{" . $imap_server_address . "}", $imap_admin_user, $imap_admin_password, OP_HALFOPEN, 1);
 		}
 		if ($mbox) {
