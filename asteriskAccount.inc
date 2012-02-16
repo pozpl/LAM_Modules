@@ -1,6 +1,6 @@
 <?php
 /*
-$Id: asteriskAccount.inc,v 1.34 2012/02/08 17:55:00 gruberroland Exp $
+$Id: asteriskAccount.inc,v 1.35 2012/02/16 07:30:15 gruberroland Exp $
 
   This code is part of LDAP Account Manager (http://www.sourceforge.net/projects/lam)
   Copyright (C) 2009 - 2012  Pavel Pozdnyak
@@ -645,10 +645,6 @@ class asteriskAccount extends baseModule implements passwordService {
 	 * @return htmlElement HTML meta data
 	 */
 	function display_html_attributes() {
-		if (isset($_POST['addObjectClass'])) {
-			$this->attributes['objectClass'][] = 'AsteriskSIPUser';
-		}
-
 		$return = new htmlTable();
 		if (in_array('AsteriskSIPUser', $this->attributes['objectClass'])) {
 			// caller ID
@@ -978,6 +974,10 @@ class asteriskAccount extends baseModule implements passwordService {
 	 * Write variables into object and do some regex checks
 	 */
 	function process_attributes() {
+		if (isset($_POST['addObjectClass'])) {
+			$this->attributes['objectClass'][] = 'AsteriskSIPUser';
+			return array();
+		}
 		if (!in_array('AsteriskSIPUser', $this->attributes['objectClass'])) {
 			return array();
 		}
