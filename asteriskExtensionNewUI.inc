@@ -1,7 +1,7 @@
 <?php
 
 /*
-  $Id: asteriskExtensionNewUI.inc,v 1.8 2012/02/09 18:05:27 gruberroland Exp $
+  $Id: asteriskExtensionNewUI.inc,v 1.10 2012/02/16 18:20:41 gruberroland Exp $
   
   This code is part of LDAP Account Manager (http://www.sourceforge.net/projects/lam)
   Copyright (C) 2009 - 2012  Pavel Pozdniak
@@ -283,8 +283,7 @@ class asteriskExtensionNewUI extends baseModule {
             $suggestedExtName = $this->generateNextExtensionName();
             $extNameInput = new htmlTableExtendedInputField(_("Extension name"), 'AstExtension', $suggestedExtName, 'AstExtension');
             $extNameInput->setRequired(true);
-            $renderContainer->addElement($extNameInput, false);
-            $renderContainer->addElement(new htmlOutputText(_("We suggest: " . $suggestedExtName)), true);
+            $renderContainer->addElement($extNameInput, true);            
         } else {
             $extNameInput = new htmlTableExtendedInputField(_("Extension name"), 'AstExtension', $extension, 'AstExtension');
             $extNameInput->setRequired(true);
@@ -316,6 +315,8 @@ class asteriskExtensionNewUI extends baseModule {
                 $upDownButtons->addElement(new htmlButton('rule_down_button_' . $i, 'down.gif', true));
             }
             $renderContainer->addElement($upDownButtons, true);
+            
+            $renderContainer->addElement(new htmlSpacer(null, '30px'), true);
         }
 
         $displayEntrNum = sizeof($entries);
@@ -336,7 +337,8 @@ class asteriskExtensionNewUI extends baseModule {
         }
         $hidenInput = new htmlHiddenInput("extension_rows", $displayEntrNum); //the size of found rows plus 1 for new one;
         $renderContainer->addElement($hidenInput, true);
-
+        
+        $renderContainer->addElement(new htmlSpacer(null, '30px'), true);
         $renderContainer->addElement(new htmlButton("add_rule", _('Add another rule')), true);
     }
 
@@ -357,7 +359,7 @@ class asteriskExtensionNewUI extends baseModule {
         }
         $renderContainer->addElement(new htmlTableExtendedInputField(_("Application data"), "AstApplicationData_" . $placeInList, $applicationData, 'AstApplicationData'), true);
         //delimeter
-        $renderContainer->addElement(new htmlSpacer(null, '10px'), true);
+        $renderContainer->addElement(new htmlSpacer(null, '5px'), true);
     }
 
     function array_sort($array, $on, $order='SORT_ASC') {
@@ -776,7 +778,7 @@ class asteriskExtensionNewUI extends baseModule {
                 '<td width="20%"><b>' . _('Priority') . '</b></td>' .
                 '</tr></block>';
         for ($i = 0; $i < sizeof($entries); $i++) {
-            $appdata = '';
+            $appdata = ' ';
             if (isset($entries[$i]['astapplicationdata'][0])) {
                 $appdata = $entries[$i]['astapplicationdata'][0];
             }
@@ -876,6 +878,8 @@ class asteriskExtensionNewUI extends baseModule {
             $row = $this->extensionRows[$rowCounter];
             ldap_add($_SESSION['ldap']->server(), "cn=" . $row["cn"][0] . "," . $this->getAccountContainer()->dnSuffix, $row);
         }
+        //
+        $this->finalDN = "cn=" .  $this->extensionRowsOrig[0]['cn'][0] . "," . $_SESSION['config']->get_Suffix('asteriskExtNewUI');
         return $this->getAccountContainer()->save_module_attributes($this->orig, $this->orig);
     }
 
