@@ -201,10 +201,7 @@ class asteriskExtensionNewUI extends baseModule {
      * @return htmlElement HTML meta data
      */
     function display_html_attributes() {
-        //Set default owner as logged in user if no other owner is set
-        if ( !$this->isExtensionOwnerSet()) {
-                $this->setDefaultExtensionOwner();
-        }
+        
         
     	$return = new htmlTable();
 
@@ -215,10 +212,15 @@ class asteriskExtensionNewUI extends baseModule {
         if (isset($this->extensionRows[0]['astextension'][0])) {
             $extName = $this->extensionRows[0]['astextension'][0];
         }
-
+        //This procedure LOAD all data from LDAP and then print to a page
         $this->render_extensions_by_priority($extName, $return);
 
         // owners
+        //Set default owner as logged in user if no other owner is set
+        if ( !$this->isExtensionOwnerSet()) {
+                $this->setDefaultExtensionOwner();
+        }
+        
         $this->render_exten_owners_set_controls($return);
 
         return $return;
@@ -530,7 +532,7 @@ class asteriskExtensionNewUI extends baseModule {
      * Return true if even one owner is set and false otherwise
      */
     function isExtensionOwnerSet(){
-        if (sizeof($this->extensionOwners) > 0) {
+        if (sizeof($this->extensionOwners) > 0 || isset($this->extensionRows[0]['member']) ) {
             return true;
         }
         return false;
@@ -906,7 +908,6 @@ class asteriskExtensionNewUI extends baseModule {
                 $diffValsSerialysed = array_diff(array_map("serialize", array_intersect_key($row, $rowOrig)), array_map("serialize", $rowOrig));
                 if (count($diffValsSerialysed) != 0) {
                     $diffVals = array_map("unserialize", $diffValsSerialysed);
-                    print_r($diffVals);
                     if($row["cn"][0] ==  $rowOrig["cn"][0]){
                         ldap_mod_replace($_SESSION['ldap']->server(), "cn=" . $row["cn"][0] . "," . $this->getAccountContainer()->dnSuffix, $diffVals);
                     }else{
