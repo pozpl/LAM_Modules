@@ -906,7 +906,15 @@ class asteriskExtensionNewUI extends baseModule {
                 $diffValsSerialysed = array_diff(array_map("serialize", array_intersect_key($row, $rowOrig)), array_map("serialize", $rowOrig));
                 if (count($diffValsSerialysed) != 0) {
                     $diffVals = array_map("unserialize", $diffValsSerialysed);
-                    ldap_mod_replace($_SESSION['ldap']->server(), "cn=" . $row["cn"][0] . "," . $this->getAccountContainer()->dnSuffix, $diffVals);
+                    print_r($diffVals);
+                    if($row["cn"][0] ==  $rowOrig["cn"][0]){
+                        ldap_mod_replace($_SESSION['ldap']->server(), "cn=" . $row["cn"][0] . "," . $this->getAccountContainer()->dnSuffix, $diffVals);
+                    }else{
+                        $origDN = "cn=" . $rowOrig["cn"][0] . "," . $this->getAccountContainer()->dnSuffix;
+                        $newRDN = "cn=" . $row["cn"][0];
+                        ldap_rename($_SESSION['ldap']->server(), $origDN, $newRDN, $this->getAccountContainer()->dnSuffix, true);
+                        ldap_mod_replace($_SESSION['ldap']->server(), $newRDN . "," . $this->getAccountContainer()->dnSuffix, $diffVals);
+                    }
                 }
             } else {
                 ldap_delete($_SESSION['ldap']->server(), "cn=" . $rowOrig["cn"][0] . "," . $_SESSION['config']->get_Suffix('asteriskExtNewUI'));
