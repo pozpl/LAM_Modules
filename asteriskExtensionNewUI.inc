@@ -258,6 +258,9 @@ class asteriskExtensionNewUI extends baseModule {
             $entries = $this->array_sort($entries, 'astpriority');
             $this->extensionRowsOrig = $entries;
             $this->extensionRows = $entries;
+            if(isset($this->extensionRows[0]['member'])){
+                $this->extensionOwners = $this->extensionRows[0]['member'];
+            }
         } else {
             $entries = $this->extensionRows;
         }
@@ -532,7 +535,7 @@ class asteriskExtensionNewUI extends baseModule {
      * Return true if even one owner is set and false otherwise
      */
     function isExtensionOwnerSet(){
-        if (sizeof($this->extensionOwners) > 0 || isset($this->extensionRows[0]['member']) ) {
+        if ( sizeof($this->extensionOwners) > 0 ) {
             return true;
         }
         return false;
@@ -896,7 +899,7 @@ class asteriskExtensionNewUI extends baseModule {
         for ($rowCounter = 0; $rowCounter < count($this->extensionRowsOrig); $rowCounter++) {
             $rowOrig = $this->extensionRowsOrig[$rowCounter];
             unset($rowOrig['dn']);
-            if ($rowCounter <= count($this->extensionRows)) {
+            if ($rowCounter < count($this->extensionRows)) {
                 $row = $this->extensionRows[$rowCounter];
 
                 if (count($diffVals = array_diff_key($rowOrig, $row)) != 0) {
