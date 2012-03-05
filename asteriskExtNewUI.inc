@@ -1,10 +1,10 @@
 <?php
 
 /*
-  $Id: asteriskExtNewUI.inc,v 1.3 2012/02/09 17:08:39 gruberroland Exp $
+  $Id: asteriskExtNewUI.inc,v 1.5 2012/03/04 17:53:40 gruberroland Exp $
 
   This code is part of LDAP Account Manager (http://www.sourceforge.net/projects/lam)
-  Copyright (C) 2009         Pozdnyak Pavel
+  Copyright (C) 2009 - 2012  Pozdnyak Pavel
                 2010 - 2012  Roland Gruber
 
   This program is free software; you can redistribute it and/or modify
@@ -91,10 +91,9 @@ class asteriskExtNewUI extends baseType {
      */
     function getListAttributeDescriptions() {
         return array(
-//"cn" => _("Extension name"),
-            "astextension" => _("Label"),
-            "astcontext" => _("Context"),
-            "member" => _("Extension owner DN"),
+            "astextension" => _("Extension name"),
+            "astcontext" => _("Account context"),
+            "member" => _("Owner"),
         );
     }
 
@@ -108,11 +107,11 @@ class asteriskExtNewUI extends baseType {
         if ($attributes == null) {
             return _("New extension");
         }
-// check if a common name is set
-        if (isset($attributes['cn'][0])) {
-            return htmlspecialchars($attributes['cn'][0]);
+		// check if a common name is set
+        if (isset($attributes['AstExtension'][0])) {
+            return htmlspecialchars($attributes['AstExtension'][0]);
         }
-// fall back to default
+		// fall back to default
         return parent::getTitleBarTitle($attributes);
     }
 
@@ -142,12 +141,23 @@ class lamAsteriskExtNewUIList extends lamList {
             'deleteEntry' => _("Delete selected extensions"));
     }
 
+    /**
+     * Forces the list view to show only specific attributes.
+	 *
+     * @see lamList::listGetParams()
+     */
     protected function listGetParams() {
         // check if only PDF should be shown
         parent::listGetParams();
         $this->attrArray = array("astextension", "astcontext", "member");
     }
 
+    /**
+     * Groups the extensions.
+     * 
+     * (non-PHPdoc)
+     * @see lamList::listRefreshData()
+     */
     protected function listRefreshData() {
         parent::listRefreshData();
         // configure search filter
@@ -161,7 +171,6 @@ class lamAsteriskExtNewUIList extends lamList {
             call_user_func_array('StatusMessage', $lastError);
         }
         
-        //array_walk_recursive($entries, create_function('&$item, $key, $keyToElum', 'print($key. "<br>"); if(strcmp ($key, $keyToElum) == 0){print("ITEM - " . $item . "<br>"); $item = "dn=none";}'), 'dn');
         $entries = $this->normalizeLdapOutput($entries);        
         $this->entries = $entries;        
         // generate list of possible suffixes
@@ -169,6 +178,11 @@ class lamAsteriskExtNewUIList extends lamList {
         $this->possibleSuffixes = $typeObj->getSuffixList();
     }
 
+    /**
+     * Groups the extensions.
+     * 
+     * @param array $entries extension entries
+     */
     private function normalizeLdapOutput($entries){
         $entries = array_map("unserialize", array_unique(array_map("serialize", $entries)));
         foreach($entries as $key=> $value){
@@ -178,9 +192,6 @@ class lamAsteriskExtNewUIList extends lamList {
         }
         return $entries;
     }
-
-    
-     
     
 }
 
